@@ -1,6 +1,6 @@
 # 🤝 Guide pour les collaborateurs du projet "Assistant Culinaire IA"
 
-Bienvenue ! Ce guide a été rédigé pour vous aider à rejoindre le projet sur GitHub même si vous n’avez jamais utilisé Git ou GitHub
+Bienvenue ! Ce guide a été rédigé pour vous aider à rejoindre le projet sur GitHub même si vous n’avez **jamais utilisé Git, GitHub ou Python**.
 
 ---
 
@@ -41,7 +41,7 @@ Ce projet est un assistant culinaire IA qui :
 
 Ouvrir un terminal (cmd ou PowerShell), puis :
 
-git config --global user.name "Votre Nom"
+git config --global user.name "Votre Nom"  
 git config --global user.email "votre@email.com"
 
 ---
@@ -50,7 +50,7 @@ git config --global user.email "votre@email.com"
 
 ### 1. Cloner le projet depuis GitHub
 
-git clone https://github.com/theotime-projet/assistant-culinaire.git
+git clone https://github.com/theotime-projet/assistant-culinaire.git  
 cd assistant-culinaire
 
 ### 2. Créer un environnement virtuel
@@ -69,13 +69,37 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 
 pip install -r requirements.txt
 
-### 5. Créer un fichier `.env` (à la racine du projet)
+---
 
-Contenu du fichier :
+## 🔐 Comment obtenir une clé API Gemini (Google)
 
-GOOGLE_GENERATIVE_AI_KEY=ma_clé_personnelle
+Pour utiliser l’assistant culinaire, il faut une **clé API** personnelle de Google. C’est cette clé qui donne accès au modèle d’IA (Gemini) dans le code.
 
-(Demandez-moi votre clé si vous ne l'avez pas.)
+### Étapes pour créer une clé :
+
+1. Aller sur la page officielle de l'API Gemini :  
+👉 https://makersuite.google.com/app/apikey
+
+2. Se connecter avec un compte Google
+
+3. Cliquer sur **"Create API key"** (ou "Créer une clé API")
+
+4. Copier la clé générée (ressemble à `AIza...`)
+
+5. Ouvrir VS Code et créer un fichier `.env` à la racine du projet  
+(clic droit → Nouveau fichier → `.env`)
+
+6. Y coller ceci (en remplaçant par votre propre clé) :
+
+GOOGLE_GENERATIVE_AI_KEY=votre_clé_ici
+
+💡 Ce fichier sert à **protéger la clé** : elle ne sera pas visible sur GitHub grâce au `.gitignore`.
+
+🎯 Pourquoi cette clé est nécessaire ?
+
+Elle permet au programme de se connecter à l'IA de Google pour **générer des recettes intelligentes**. Sans cette clé, le programme ne peut pas fonctionner.
+
+❗ Attention : **ne partagez jamais votre clé en ligne** (ni sur GitHub, ni sur Discord). Elle est personnelle.
 
 ---
 
@@ -85,15 +109,17 @@ Dans le terminal, toujours dans le dossier du projet :
 
 python PROJETV2.py
 
+Ou simplement **double-cliquer sur le fichier `run.bat`** une fois que tout est prêt !
+
 ---
 
 ## 💬 Commandes Git utiles
 
-Action : Commande
-- Vérifier les fichiers modifiés : git status
-- Ajouter des fichiers à valider : git add nom_du_fichier.py
-- Sauvegarder les changements : git commit -m "Votre message"
-- Envoyer les modifs sur GitHub : git push
+Action : Commande  
+- Vérifier les fichiers modifiés : git status  
+- Ajouter des fichiers à valider : git add nom_du_fichier.py  
+- Sauvegarder les changements : git commit -m "Votre message"  
+- Envoyer les modifs sur GitHub : git push  
 - Récupérer les modifs des autres : git pull
 
 ---
