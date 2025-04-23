@@ -360,7 +360,7 @@ def main():
         
         elif choix == "5":
     # Option pour s'identifier et charger un profil existant
-            nom_profil = input("\n📂 Qui est-ce ?")
+            nom_profil = input("\n📂 Qui est-ce ? ")
     
             if not nom_profil:
                 print("⚠️ Veuillez entrer un nom de profil valide.")
