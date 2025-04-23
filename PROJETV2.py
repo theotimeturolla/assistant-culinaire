@@ -371,7 +371,7 @@ def main():
         # Tenter de charger le profil
                 try:
                     if assistant.charger_preferences(nom_fichier):
-                        print(f"✅ Cool {nom_profil} ! V5otre profil est chargé avec succès!")
+                        print(f"✅ Cool {nom_profil} ! Votre profil est chargé avec succès!")
                     else:
                         print(f"❌ {nom_profil}, votre profil n'existe pas.")
                         if input("Souhaitez-vous créer un nouveau profil? (o/n): ").lower() == 'o':
