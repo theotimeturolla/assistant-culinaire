@@ -195,12 +195,13 @@ class AssistantCulinaire:
         
         Informations importantes:
         - Régime alimentaire: {self.preferences['regime']}
-        - Budget moyen par personne: {self.preferences['budget']} €
-        - Temps de préparation maximum: {self.preferences['temps_preparation']} minutes 
-        - Allergies à éviter: {', '.join(self.preferences['allergies'])}
-        - Ingrédients à éviter: {', '.join(self.preferences['aversions'])}
-        - Préférences culinaires: {', '.join(self.preferences['preferences'])}
         """
+        
+        if self.preferences.get("budget"):
+            prompt += f"- Budget moyen par personne: {self.preferences['budget']} €\n"
+        
+        if self.preferences.get("temps_preparation"):
+            prompt += f"- Temps de préparation maximum: {self.preferences['temps_preparation']} minutes\n"
         
         if self.preferences["allergies"]:
             prompt += f"- Allergies à éviter: {', '.join(self.preferences['allergies'])}\n"
@@ -255,7 +256,6 @@ class AssistantCulinaire:
         except Exception as e:
             print(f"\n❌ Erreur lors du chargement des préférences: {str(e)}")
             return False
-
 
 def afficher_menu_principal():
     """Affiche le menu principal de l'application"""
@@ -359,26 +359,30 @@ def main():
             assistant._afficher_resume_preferences()
         
         elif choix == "5":
-            # Option pour s'identifier et charger un profil existant
-            while True:
-                nom_profil = input("\n📂 Entrez le nom du profil à charger (sans l'extension .json) : ")
-                
-                if not nom_profil:
-                    print("⚠️ Veuillez entrer un nom de profil valide.")
-                    continue
-                
-                # Construire le nom de fichier
+    # Option pour s'identifier et charger un profil existant
+            nom_profil = input("\n📂 Entrez le nom du profil à charger (sans l'extension .json) : ")
+    
+            if not nom_profil:
+                print("⚠️ Veuillez entrer un nom de profil valide.")
+            else:
+        # Construire le nom de fichier
                 nom_fichier = nom_profil if nom_profil.endswith('.json') else f"{nom_profil}.json"
-                
-                # Tenter de charger le profil
+        
+        # Tenter de charger le profil
                 try:
                     if assistant.charger_preferences(nom_fichier):
-                        print(f"✅ Profil {nom_profil} chargé avec succès!")
-                        break
-                except FileNotFoundError:
-                    print(f"❌ Profil {nom_fichier} non trouvé. Voulez-vous réessayer?")
-                    if input("Réessayer? (o/n): ").lower() != 'o':
-                        break
+                        print(f"✅ Cool {nom_profil} ! V5otre profil est chargé avec succès!")
+                    else:
+                        print(f"❌ {nom_profil}, votre profil n'existe pas.")
+                        if input("Souhaitez-vous créer un nouveau profil? (o/n): ").lower() == 'o':
+                            assistant.configurer_preferences()
+                    # Proposer de sauvegarder sous ce nom
+                            if input(f"\nSouhaitez-vous sauvegarder ce profil sous le nom '{nom_profil}'? (o/n): ").lower() == 'o':
+                                assistant.sauvegarder_preferences(nom_fichier)
+                                print(f"✅ Profil sauvegardé sous {nom_fichier}")
+                except Exception as e:
+                    print(f"❌ Erreur lors du chargement du profil: {str(e)}")
+                    print("Retour au menu principal...")
         
         elif choix == "0":
             print("\n👋 Merci d'avoir utilisé l'Assistant Culinaire! À bientôt!")
