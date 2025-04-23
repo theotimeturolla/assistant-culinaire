@@ -533,8 +533,7 @@ class Application:
             ("🍽️ Générer recette", self.generer_recette),
             ("📋 Générer menu", self.generer_menu),
             ("👤 Mes préférences", self.afficher_preferences),
-            ("💾 Sauvegarder", self.sauvegarder_preferences),
-            ("📂 Charger", self.charger_preferences)
+            ("📂 S'identifier", self.charger_preferences)
         ]
         
         # Création des boutons de menu
@@ -949,18 +948,23 @@ class Application:
         # Temps de préparation
         temps_text = f"{preferences['temps_preparation']} minutes" if preferences.get('temps_preparation') else "Non spécifié"
         row = add_pref_row("Temps de préparation max:", temps_text, row)
-        
+
         # Boutons d'actions
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X, pady=10)
-        
+
         # Bouton pour fermer
         close_btn = ttk.Button(btn_frame, text="Fermer", command=pref_window.destroy)
         close_btn.pack(side=tk.RIGHT, padx=5)
-        
+
+        # Bouton pour sauvegarder
+        save_btn = ttk.Button(btn_frame, text="Sauvegarder", command=lambda: [pref_window.destroy(), self.sauvegarder_preferences()], style="Action.TButton")
+        save_btn.pack(side=tk.RIGHT, padx=5)
+
         # Bouton pour modifier
-        edit_btn = ttk.Button(btn_frame, text="Modifier", command=lambda: [pref_window.destroy(), self.configurer_preferences()], style="Action.TButton")
-        edit_btn.pack(side=tk.RIGHT, padx=5)
+        edit_btn = ttk.Button(btn_frame, text="Modifier", command=lambda: [pref_window.destroy(), self.configurer_preferences()])
+        edit_btn.pack(side=tk.RIGHT, padx=5)        
+
     
     def sauvegarder_preferences(self):
         """Sauvegarder les préférences dans un fichier"""
