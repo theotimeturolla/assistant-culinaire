@@ -263,13 +263,13 @@ def afficher_menu_principal():
     print("🍳  MENU PRINCIPAL  🍳")
     print("-"*60)
     print("1. Créer mon profil culinaire")
-    print("2. Trouver une recette avec mes ingrédients")
+    print("2. Trouver une recette avec les ingrédients que j'ai sous la main")
     print("3. Générer un menu pour plusieurs jours")
     print("4. Afficher mes préférences actuelles")
-    print("5. M'identifier (charger un profil)")
+    print("5. M'identifier")
     print("0. Quitter")
     print("-"*60)
-    return input("Votre choix? ")
+    return input("Quel est votre choix? ")
 
 def main():
     assistant = AssistantCulinaire()
@@ -360,7 +360,7 @@ def main():
         
         elif choix == "5":
     # Option pour s'identifier et charger un profil existant
-            nom_profil = input("\n📂 Entrez le nom du profil à charger (sans l'extension .json) : ")
+            nom_profil = input("\n📂 Qui est-ce ?")
     
             if not nom_profil:
                 print("⚠️ Veuillez entrer un nom de profil valide.")
