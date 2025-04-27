@@ -8,6 +8,10 @@ from typing import List
 from PIL import Image, ImageTk
 import webbrowser
 from datetime import datetime
+import tkinter.filedialog as filedialog
+from reportlab.pdfgen import canvas
+import tempfile
+import os
 
 # Charger la clé API
 load_dotenv()
@@ -310,10 +314,23 @@ class AssistantCulinaireGUI:
                 self.preferences["temps_preparation"] = int(temps) if temps else None
             except ValueError:
                 self.preferences["temps_preparation"] = None
-                
-            pref_window.destroy()
-            messagebox.showinfo("Préférences sauvegardées", "Vos préférences ont été enregistrées avec succès!")
-        
+
+            # On demande maintenant le nom du fichier AVANT de fermer la fenêtre
+            filename = simpledialog.askstring("Nom du profil", "Sous quel nom souhaitez-vous enregistrer vos préférences ?")
+            if filename:
+                filename = filename.strip()
+                if not filename.endswith('.json'):
+                    filename += ".json"
+                try:
+                    self.sauvegarder_preferences(filename)
+                    messagebox.showinfo("Sauvegarde réussie", f"Préférences sauvegardées sous {filename}")
+                    pref_window.destroy()
+                except Exception as e:
+                    messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {str(e)}")
+            else:
+                messagebox.showwarning("Aucun nom saisi", "Les préférences n'ont pas été sauvegardées.")
+
+
         # Bouton d'annulation
         cancel_button = ttk.Button(buttons_frame, text="Annuler", command=pref_window.destroy)
         cancel_button.pack(side=tk.LEFT, padx=10)
@@ -411,15 +428,22 @@ class AssistantCulinaireGUI:
         except Exception as e:
             return f"Erreur lors de la génération du menu: {str(e)}"
     
-    def sauvegarder_preferences(self, fichier: str = "preferences_culinaires.json") -> None:
-        """Sauvegarde les préférences dans un fichier JSON"""
-        try:
-            with open(fichier, 'w', encoding='utf-8') as f:
-                json.dump(self.preferences, f, ensure_ascii=False, indent=4)
-            messagebox.showinfo("Sauvegarde réussie", f"Préférences sauvegardées dans {fichier}")
-        except Exception as e:
-            messagebox.showerror("Erreur de sauvegarde", f"Erreur lors de la sauvegarde des préférences: {str(e)}")
-    
+    def sauvegarder_preferences(self, filename):
+        """Sauvegarder les préférences sous un nom choisi par l'utilisateur."""
+        if filename:
+            filename = filename.strip()
+            if not filename.endswith('.json'):
+                filename += ".json"
+            try:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    json.dump(self.preferences, f, ensure_ascii=False, indent=4)
+                messagebox.showinfo("Sauvegarde réussie", f"Préférences sauvegardées sous {filename}")
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {str(e)}")
+        else:
+            messagebox.showwarning("Aucun nom saisi", "Les préférences n'ont pas été sauvegardées.")
+
+
     def charger_preferences(self, fichier: str = "preferences_culinaires.json") -> bool:
         """Charge les préférences depuis un fichier JSON"""
         try:
@@ -744,8 +768,7 @@ class Application:
     def generer_recette(self):
         """Générer une recette à partir des ingrédients"""
         ingredients = simpledialog.askstring("Ingrédients", 
-                                         "Entrez vos ingrédients séparés par des virgules:",
-                                         parent=self.root)
+                                         "Entrez vos ingrédients séparés par des virgules:")
         if not ingredients:
             return
             
@@ -771,7 +794,6 @@ class Application:
         try:
             jours = simpledialog.askinteger("Nombre de jours", 
                                        "Pour combien de jours souhaitez-vous générer un menu ?",
-                                       parent=self.root,
                                        minvalue=1, maxvalue=14)
             if not jours:
                 return
@@ -789,10 +811,10 @@ class Application:
             loader.destroy()
             
             # Afficher le menu
-            self.afficher_resultat(f"Menu pour {jours} jours", menu)
-            
-        except ValueError:
-            messagebox.showwarning("Erreur", "Veuillez entrer un nombre valide.", parent=self.root)
+            self.afficher_resultat(f"Menu pour {jours} jours", menu)            
+        
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Une erreur est survenue lors de la génération du menu : {str(e)}")
 
     def afficher_resultat(self, titre, contenu):
         """Afficher un résultat dans une fenêtre stylisée"""
@@ -840,39 +862,92 @@ class Application:
         # Frame pour les boutons d'action
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X, pady=10)
-        
-        # Bouton pour sauvegarder
+
         def save_content():
-            filename = simpledialog.askstring("Sauvegarder", 
-                                          "Nom du fichier (sans extension):", 
-                                          parent=result_window)
-            if filename:
-                filename = filename if filename.endswith('.txt') else filename + '.txt'
+            """Enregistrer le contenu affiché dans un fichier choisi par l'utilisateur."""
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("Fichiers PDF", "*.pdf"), ("Tous les fichiers", "*.*")],
+                title="Enregistrer le fichier",
+                initialdir=os.path.dirname(__file__)
+            )
+            if file_path:
                 try:
-                    with open(filename, 'w', encoding='utf-8') as f:
-                        f.write(contenu)
-                    messagebox.showinfo("Sauvegarde réussie", 
-                                     f"Contenu sauvegardé dans {filename}", 
-                                     parent=result_window)
+                    # Créer un fichier texte temporaire encodé UTF-8
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.txt', mode='w', encoding='utf-8') as temp_file:
+                        temp_file.write(contenu)
+                        temp_filename = temp_file.name
+
+                    # Créer un PDF
+                    c = canvas.Canvas(file_path)
+                    c.setFont("Helvetica-Bold", 18)
+
+                    titre = "Votre menu personnalisé"
+                    page_width = c._pagesize[0]
+                    c.drawCentredString(page_width / 2, 800, titre)
+
+                    # Position de départ
+                    current_y = 750
+                    line_height = 14  # espace entre lignes
+
+                    with open(temp_filename, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            line = line.replace('**', '')
+                            if line.startswith('*'):
+                                line = line.lstrip('*').strip()
+
+                            if not line:
+                                continue  # ignorer les lignes vides
+
+                            # ➔ Si la ligne est un titre de section (Jour ou Liste de courses)
+                            if line.lower().startswith('jour') or 'liste de courses' in line.lower():
+                                c.setFont("Helvetica-Bold", 14)
+                                c.drawString(50, current_y, line)
+
+                                # ➔ Ajouter un trait de séparation
+                                c.line(45, current_y-2, page_width-45, current_y-2)
+
+                                current_y -= (line_height + 10)  # espace après les titres
+                                c.setFont("Helvetica", 12)
+                            else:
+                                # Texte normal
+                                c.setFont("Helvetica", 12)
+                                c.drawString(50, current_y, line)
+                                current_y -= line_height
+
+                            # Si on arrive en bas de page, créer une nouvelle page
+                            if current_y < 50:
+                                c.showPage()
+                                current_y = 800
+
+                    c.save()
+
+                    os.remove(temp_filename)
+
+                    messagebox.showinfo("Sauvegarde réussie", f"Contenu sauvegardé dans {file_path}", parent=result_window)
+
                 except Exception as e:
-                    messagebox.showerror("Erreur", 
-                                      f"Erreur lors de la sauvegarde : {str(e)}", 
-                                      parent=result_window)
-        
+                    messagebox.showerror("Erreur", f"Erreur lors de la sauvegarde : {str(e)}", parent=result_window)
+            else:
+                messagebox.showwarning("Aucun fichier sélectionné", "Le contenu n'a pas été sauvegardé.", parent=result_window)
+
+
+  
         # Bouton pour imprimer
         def print_content():
             messagebox.showinfo("Impression", 
-                             "Fonctionnalité d'impression en cours de développement.", 
-                             parent=result_window)
-        
+                        "Fonctionnalité d'impression en cours de développement.", 
+                        parent=result_window)
+            
         # Bouton pour fermer
         close_btn = ttk.Button(btn_frame, text="Fermer", command=result_window.destroy)
         close_btn.pack(side=tk.RIGHT, padx=5)
-        
+            
         # Bouton pour imprimer
         print_btn = ttk.Button(btn_frame, text="Imprimer", command=print_content)
         print_btn.pack(side=tk.RIGHT, padx=5)
-        
+            
         # Bouton pour sauvegarder
         save_btn = ttk.Button(btn_frame, text="Sauvegarder", command=save_content, style="Action.TButton")
         save_btn.pack(side=tk.RIGHT, padx=5)
@@ -969,8 +1044,7 @@ class Application:
     def sauvegarder_preferences(self):
         """Sauvegarder les préférences dans un fichier"""
         filename = simpledialog.askstring("Sauvegarder les préférences", 
-                                      "Nom du fichier (sans extension):",
-                                      parent=self.root)
+                                      "Nom du fichier (sans extension):")
         if filename:
             filename = filename if filename.endswith('.json') else filename + '.json'
             self.assistant.sauvegarder_preferences(filename)
@@ -978,8 +1052,7 @@ class Application:
     def charger_preferences(self):
         """Charger les préférences depuis un fichier"""
         filename = simpledialog.askstring("Charger les préférences",
-                                      "Nom du fichier (sans extension):",
-                                      parent=self.root)
+                                      "Nom du fichier (sans extension):")
         if filename:
             filename = filename if filename.endswith('.json') else filename + '.json'
             if self.assistant.charger_preferences(filename):
